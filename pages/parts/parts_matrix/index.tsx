@@ -10,6 +10,7 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import {
   Box,
   Button,
+  Container,
   IconButton,
   Menu,
   MenuItem,
@@ -22,6 +23,8 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import React, { useCallback, useState } from "react";
 import { menuButtonType } from "../inventory_management";
+import CustomInput from "@/ui/Inputs/CustomInput";
+import MuiModalWrapper from "@/ui/Modal/MuiModalWrapper";
 
 const PartsMatrix = () => {
   const StyledContainer = styled("section")`
@@ -110,14 +113,14 @@ const PartsMatrix = () => {
     {
       field: "description",
       headerName: "Description",
-      width: 250,
+      width: 240,
       editable: true,
       headerClassName: "col-theme--header"
     },
     {
       field: "manufacturer",
       headerName: "Manufacturer Name",
-      width: 150,
+      width: 200,
       editable: true,
       headerClassName: "col-theme--header"
     },
@@ -169,66 +172,86 @@ const PartsMatrix = () => {
     }
   ];
 
+  const [partID, setPartID] = useState("");
+
   const [searchInput, setSearchInput] = useState("");
-  //   const handleSearch = () => {
-  //     const results = encodeURIComponent(searchItem)
-
-  //   };
-  const [filteredResults, setFilteredResults] = useState([]);
-
-  const handleSearch = (searchValue: string) => {
-    setSearchInput(searchValue);
-    if (searchInput !== "") {
-      let filteredData = data?.filter((item) => {
-        return Object.values(item)
-          .join("")
-          .toLowerCase()
-          .includes(searchInput.toLowerCase());
-      });
-      console.log(filteredData, "filteredData");
-      setFilteredResults(filteredData);
-    } else {
-      setFilteredResults(data);
-    }
+  const handleSubmit = (e: any) => {
+    // const results = encodeURIComponent(searchItem)
+    setSearchInput(e.target.value);
   };
+  const [filteredResults, setFilteredResults] = useState([]);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setSearchInput(e.target.value);
+  };
+
+  const filteredData = data?.filter((item) => {
+    const searchItemLower = searchInput?.toLowerCase();
+    const descriptionLower = item.description.toLowerCase();
+    const manufacturerLower = item.manufacturer.toLowerCase();
+
+    return (
+      descriptionLower.includes(searchItemLower) ||
+      manufacturerLower.includes(searchItemLower)
+    );
+  });
+  // const handleSearch = (searchValue: string) => {
+  //   setSearchInput(searchValue);
+  //   if (searchInput !== "") {
+  //     let filteredData = data?.filter((item) => {
+  //       return Object.values(item)
+  //         .join("")
+  //         .toLowerCase()
+  //         .includes(searchInput.toLowerCase());
+  //     });
+  //     console.log(filteredData, "filteredData");
+  //     // setFilteredResults(filteredData);
+  //   } else {
+  //     // setFilteredResults(data);
+  //   }
+  // };
 
   return (
     <DashboardLayout>
-      <StyledContainer>
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            sx={{ width: "30%", mx: 2 }}
-            placeholder="Search here"
+      <Container>
+        <form style={{ float: "left" }} onSubmit={handleSubmit}>
+          <CustomInput
+            sx={{ background: "white" }}
+            placeholder="Search Something"
+            name="searchInput"
             value={searchInput}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleChange}
           />
           <Button
             variant="contained"
             color="success"
-            size="large"
-            sx={{ flexGrow: 1 }}
+            sx={{ m: 0.5, p: 1.5 }}
+            type="submit"
           >
             Search
           </Button>
-          <Typography sx={{ float: "right" }}>
-            <Button variant="contained" color="success" size="large">
-              <AddIcon sx={{ height: 16 }} />
-              Create
-            </Button>
-          </Typography>
-        </Box>
-        <Box
-          sx={{
+        </form>
+        <Button
+          variant="contained"
+          color="success"
+          sx={{ m: 0.5, p: 1.5, float: "right" }}
+        >
+          <AddIcon /> Create
+        </Button>
+      </Container>
+      <StyledContainer>
+        <Box>
+          {/*  sx={{
             "& .col-theme--header": {
               backgroundColor: "gray",
               fontWeight: "bold",
               fontSize: "16px"
             }
-          }}
-        >
+          }} */}
           <DataGridTable
             columns={columns}
-            rows={(data as PTM[]) ?? ""}
+            rows={(filteredData as PTM[]) ?? ""}
             initialState={{
               pagination: {
                 paginationModel: {
@@ -240,6 +263,7 @@ const PartsMatrix = () => {
           />
         </Box>
       </StyledContainer>
+      
     </DashboardLayout>
   );
 };

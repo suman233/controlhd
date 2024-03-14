@@ -1,8 +1,9 @@
-import { getInventory } from "@/api/functions/parts.api";
+import { getInventory, getPartsMatrix } from "@/api/functions/parts.api";
 import DataGridTable from "@/components/Table/DataGridTable";
 import { Inventory } from "@/interface/stoysec.interface";
 import DashboardLayout from "@/layout/dashboard/DashboardLayout";
 import {
+  Button,
   Container,
   IconButton,
   Menu,
@@ -16,6 +17,10 @@ import React, { useCallback, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useDebounce } from "@/hooks/utils/useDebounce";
+import { AddCircleRounded } from "@mui/icons-material";
+import CustomInput from "@/ui/Inputs/CustomInput";
+import MuiModalWrapper from "@/ui/Modal/MuiModalWrapper";
 
 export interface menuButtonType {
   title1?: string;
@@ -26,9 +31,7 @@ export interface menuButtonType {
 
 const InventoryPage = () => {
   const StyledContainer = styled("section")`
-    margin: auto;
-    margin-top: 20px;
-    background: lightblue;
+    margin: 10px;
   `;
   const { isLoading, data, error } = useQuery({
     queryKey: ["inventorylist"],
@@ -100,6 +103,32 @@ const InventoryPage = () => {
     );
   };
 
+  const [searchItem, setSearchItem] = useState("");
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    setSearchItem(e.target.value);
+  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSearchItem(e.target.value);
+  };
+  const debouncedSearch = useDebounce(searchItem, 1000);
+  console.log("result", debouncedSearch);
+
+  const filteredData = data?.filter((item) => {
+    const searchItemLower = debouncedSearch?.toLowerCase();
+    const descriptionLower = item.description.toLowerCase();
+
+    return descriptionLower.includes(searchItemLower);
+  });
+
+  const [showModal, setShowModal] = useState(false);
+  const { data: partmatrix} = useQuery({
+    queryKey: ["matrixlist"],
+    queryFn: getPartsMatrix
+  });
+  console.log("mtdata", partmatrix);
+
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 120, sortable: true },
     {
@@ -122,37 +151,67 @@ const InventoryPage = () => {
       editable: true
     },
     {
-        field: "action",
-        headerName: "Action",
-        sortable: false,
-        width: 150,
-        align: "center",
-        headerAlign: "center",
-        renderCell: (params) => (
-          <MenuButton
-            title1="Edit"
-            title2="Delete"
-            handleClick1={handleClickOpen}
-          />
-        )
-      }
+      field: "action",
+      headerName: "Action",
+      sortable: false,
+      width: 150,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <MenuButton
+          title1="Edit"
+          title2="Delete"
+          handleClick1={handleClickOpen}
+        />
+      )
+    }
   ];
 
+  const title=partmatrix?.filter(item=>item.part_no)
   return (
     <DashboardLayout>
-      <StyledContainer></StyledContainer>
-      <DataGridTable
-        columns={columns}
-        rows={(data as Inventory[]) ?? ""}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10
+      <Container maxWidth={"xl"}>
+        <form style={{ float: "left" }} onSubmit={handleSubmit}>
+          <CustomInput
+            sx={{ background: "white" }}
+            placeholder="Search Something"
+            name="searchInput"
+            value={searchItem}
+            onChange={handleChange}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            sx={{ m: 0.5, p: 1.5 }}
+            type="submit"
+          >
+            Search
+          </Button>
+        </form>
+        <Button
+          variant="contained"
+          color="success"
+          sx={{ m: 0.5, p: 1.5, float: "right" }}
+          onClick={() => setShowModal(true)}
+        >
+          <AddCircleRounded /> Create
+        </Button>
+      </Container>
+      <StyledContainer>
+        <DataGridTable
+          columns={columns}
+          rows={(filteredData as Inventory[]) ?? ""}
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 8
+              }
             }
-          }
-        }}
-        pageSizeOptions={[13, 25]}
-      />
+          }}
+          pageSizeOptions={[13, 25]}
+        />
+      </StyledContainer>
+      <MuiModalWrapper open={showModal} onClose={setShowModal as () => void}  title={title} />
     </DashboardLayout>
   );
 };
