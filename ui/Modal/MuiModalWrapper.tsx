@@ -39,7 +39,7 @@ export default function MuiModalWrapper(props: MuiModalWrapperProps) {
           alignItems="center"
           spacing={2}
         >
-          <Typography>{title}</Typography>
+          <Typography sx={{p:2}}>{title}</Typography>
           <IconButton onClick={() => onClose()}>
             <CloseIcon />
           </IconButton>

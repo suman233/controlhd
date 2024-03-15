@@ -211,7 +211,7 @@ const InventoryPage = () => {
           pageSizeOptions={[13, 25]}
         />
       </StyledContainer>
-      <MuiModalWrapper open={showModal} onClose={setShowModal as () => void}  title={title} />
+      {/* <MuiModalWrapper open={showModal} onClose={setShowModal as () => void}  /> */}
     </DashboardLayout>
   );
 };

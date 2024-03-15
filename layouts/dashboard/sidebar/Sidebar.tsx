@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { NAV } from "@/config/constants";
 import navConfig from "../config-navigation";
 import SidebarItem from "./SidebarItem";
+import assest from "@/json/assest";
 
 interface SidebarProps {
   openNav: boolean;
@@ -38,12 +39,9 @@ export default function Sidebar({ openNav, onCloseNav }: SidebarProps) {
         px: 2.5,
         display: "flex",
         borderRadius: 1.5,
-        alignItems: "center",
-        bgcolor: (theme) => alpha(theme.palette.grey[500], 0.12)
+        alignItems: "center"
       }}
     >
-      <Avatar src="" alt="photoURL" />
-
       <Box sx={{ ml: 2 }}>
         <Typography variant="subtitle2">user</Typography>
 
@@ -73,8 +71,8 @@ export default function Sidebar({ openNav, onCloseNav }: SidebarProps) {
         }
       }}
     >
-      <Logo sx={{ mt: 3, ml: 4 }} />
-
+      {/* <Logo sx={{ mt: 3, ml: 4 }} /> */}
+      <img src={assest.logo_header} alt="" height={100} />
       {renderAccount}
 
       {renderMenu}

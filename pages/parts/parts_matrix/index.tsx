@@ -10,10 +10,12 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   IconButton,
   Menu,
   MenuItem,
+  Skeleton,
   TextField,
   Typography,
   styled
@@ -25,15 +27,18 @@ import React, { useCallback, useState } from "react";
 import { menuButtonType } from "../inventory_management";
 import CustomInput from "@/ui/Inputs/CustomInput";
 import MuiModalWrapper from "@/ui/Modal/MuiModalWrapper";
+import Loader from "@/ui/Loader/Loder";
+import { useRouter } from "next/router";
+import CustomizedMenu from "@/ui/CustomMenu/CustomizedMenu";
 
 const PartsMatrix = () => {
   const StyledContainer = styled("section")`
-    margin: auto;
-    margin-top: 20px;
+    margin: 20px;
   `;
   const { isLoading, data, error } = useQuery({
     queryKey: ["matrixlist"],
-    queryFn: getPartsMatrix
+    queryFn: getPartsMatrix,
+    refetchOnMount: true
   });
   console.log("mtdata", data);
 
@@ -162,13 +167,7 @@ const PartsMatrix = () => {
       editable: true,
       headerClassName: "col-theme--header",
       align: "center",
-      renderCell: (params) => (
-        <MenuButton
-          title1="Edit"
-          title2="Delete"
-          handleClick1={handleClickOpen}
-        />
-      )
+      renderCell: (params) => <CustomizedMenu id={Number(params.id)} />
     }
   ];
 
@@ -196,6 +195,10 @@ const PartsMatrix = () => {
       manufacturerLower.includes(searchItemLower)
     );
   });
+  const router = useRouter();
+
+  const handleCreate = () => {};
+
   // const handleSearch = (searchValue: string) => {
   //   setSearchInput(searchValue);
   //   if (searchInput !== "") {
@@ -214,7 +217,7 @@ const PartsMatrix = () => {
 
   return (
     <DashboardLayout>
-      <Container>
+      <Container sx={{ maxWidth: "xl" }}>
         <form style={{ float: "left" }} onSubmit={handleSubmit}>
           <CustomInput
             sx={{ background: "white" }}
@@ -236,34 +239,38 @@ const PartsMatrix = () => {
           variant="contained"
           color="success"
           sx={{ m: 0.5, p: 1.5, float: "right" }}
+          onClick={() => router.push("/parts/parts_matrix/create")}
         >
-          <AddIcon /> Create
+          <AddIcon sx={{ fontSize: "20px" }} /> Create
         </Button>
       </Container>
       <StyledContainer>
-        <Box>
-          {/*  sx={{
-            "& .col-theme--header": {
-              backgroundColor: "gray",
-              fontWeight: "bold",
-              fontSize: "16px"
-            }
-          }} */}
-          <DataGridTable
-            columns={columns}
-            rows={(filteredData as PTM[]) ?? ""}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 10
-                }
+        <DataGridTable
+          columns={columns}
+          rows={
+            (filteredData as PTM[]) ?? (
+              <Skeleton
+                variant="circular"
+                sx={{
+                  backgroundColor: "green",
+                  color: "green",
+                  my: 4,
+                  mx: 1
+                }}
+              />
+            )
+          }
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 8
               }
-            }}
-            pageSizeOptions={[13, 25]}
-          />
-        </Box>
+            }
+          }}
+          pageSizeOptions={[13, 25]}
+          loading={isLoading ?? <CircularProgress size={300} />}
+        />
       </StyledContainer>
-      
     </DashboardLayout>
   );
 };
